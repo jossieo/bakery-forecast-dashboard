@@ -38,10 +38,36 @@ train["log_residual"] = log_model.resid
 
 
 app_ui = ui.page_fluid(
-    ui.h2("Bakery sales forecasting dashboard"),
-    ui.p(
-        "2017 forecasts for one bakery product. The recommended model uses a "
-        "log-sales transformation, promotion, weather, store type, and day of week."
+    ui.tags.style(
+        """
+        :root { --ink: #172033; --muted: #62708a; --blue: #2f6fed; --surface: #ffffff; --canvas: #f4f7fb; }
+        body { background: var(--canvas); color: var(--ink); }
+        .container-fluid { max-width: 1500px; padding: 28px 32px 42px; }
+        .app-header { background: linear-gradient(120deg, #102a56, #2f6fed); color: white; border-radius: 18px; padding: 24px 28px; margin-bottom: 24px; box-shadow: 0 12px 30px rgba(27, 68, 130, .18); }
+        .app-header h2 { margin: 0 0 6px; font-weight: 700; letter-spacing: -.02em; }
+        .app-header p { margin: 0; color: rgba(255,255,255,.86); font-size: 1.02rem; }
+        .nav-tabs { border-bottom: 1px solid #dbe3ef; margin-bottom: 18px; }
+        .nav-tabs .nav-link { border: 0; color: var(--muted); font-weight: 600; padding: 12px 18px; }
+        .nav-tabs .nav-link.active { color: var(--blue); background: transparent; border-bottom: 3px solid var(--blue); }
+        .card { background: var(--surface); border: 1px solid #e1e8f2; border-radius: 14px; box-shadow: 0 4px 14px rgba(26, 43, 73, .05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid #edf1f6; color: var(--ink); font-weight: 700; padding: 15px 20px; }
+        .card-body { padding: 18px 20px; }
+        .sidebar { background: #fff; border: 1px solid #e1e8f2; border-radius: 14px; box-shadow: 0 4px 14px rgba(26, 43, 73, .05); padding: 18px; }
+        .form-label { color: var(--ink); font-weight: 700; }
+        .form-select { border-color: #cbd7e7; border-radius: 9px; }
+        .irs--shiny .irs-bar, .irs--shiny .irs-handle { border-color: var(--blue); background: var(--blue); }
+        .irs--shiny .irs-single, .irs--shiny .irs-from, .irs--shiny .irs-to { background: var(--blue); }
+        .data-frame-container { border-radius: 10px; overflow: hidden; }
+        @media (max-width: 768px) { .container-fluid { padding: 18px; } .app-header { padding: 20px; } }
+        """
+    ),
+    ui.div(
+        {"class": "app-header"},
+        ui.h2("Bakery sales forecasting dashboard"),
+        ui.p(
+            "2017 forecasts for one bakery product. The recommended model uses a "
+            "log-sales transformation, promotion, weather, store type, and day of week."
+        ),
     ),
     ui.navset_card_tab(
         ui.nav_panel(
