@@ -64,9 +64,16 @@ app_ui = ui.page_fluid(
                     ),
                     ui.p("Select one month by setting both slider handles to the same month."),
                 ),
-                ui.card(
-                    ui.card_header("Daily sales and forecasts"),
-                    ui.output_plot("forecast_plot"),
+                ui.layout_columns(
+                    ui.card(
+                        ui.card_header("Actual sales vs. manager's promotion-only forecast"),
+                        ui.output_plot("baseline_plot"),
+                    ),
+                    ui.card(
+                        ui.card_header("Actual sales vs. recommended log-sales forecast"),
+                        ui.output_plot("recommended_plot"),
+                    ),
+                    col_widths=(6, 6),
                 ),
                 ui.card(
                     ui.card_header("Forecast accuracy for the selected store and period"),
@@ -109,22 +116,52 @@ def server(input, output, session):
             & (test["date"].dt.month <= end_month)
         ].sort_values("date")
 
-    @render.plot
-    def forecast_plot():
-        selected = selected_data()
-        start_month, end_month = input.month_range()
-        fig, ax = plt.subplots(figsize=(11, 5))
-        ax.plot(selected["date"], selected["sales"], color="black", linewidth=1.8, label="Actual sales")
-        ax.plot(selected["date"], selected["baseline_prediction"], color="#4c78a8", label="Promotion-only forecast")
-        ax.plot(selected["date"], selected["log_model_prediction"], color="#f58518", label="Recommended log-sales forecast")
-        ax.set_title(
-            f"Store {input.store_id()}: {MONTHS[start_month - 1]} to {MONTHS[end_month - 1]}, 2017"
+    def draw_forecast(selected, prediction_column, prediction_label, prediction_color, title_prefix):
+        """Draw a two-line comparison on a shared scale for clear side-by-side review."""
+        values = pd.concat(
+            [
+                selected["sales"],
+                selected["baseline_prediction"],
+                selected["log_model_prediction"],
+            ]
         )
+        padding = (values.max() - values.min()) * 0.05
+        y_min = max(0, values.min() - padding)
+        y_max = values.max() + padding
+        fig, ax = plt.subplots(figsize=(7, 4.5))
+        ax.plot(selected["date"], selected["sales"], color="black", linewidth=1.8, label="Actual sales")
+        ax.plot(selected["date"], selected[prediction_column], color=prediction_color, label=prediction_label)
+        ax.set_title(title_prefix)
         ax.set_xlabel("Date")
         ax.set_ylabel("Units sold")
+        ax.set_ylim(y_min, y_max)
         ax.legend()
         fig.tight_layout()
         return fig
+
+    @render.plot
+    def baseline_plot():
+        selected = selected_data()
+        start_month, end_month = input.month_range()
+        return draw_forecast(
+            selected,
+            "baseline_prediction",
+            "Promotion-only forecast",
+            "#4c78a8",
+            f"Store {input.store_id()}: {MONTHS[start_month - 1]} to {MONTHS[end_month - 1]}, 2017",
+        )
+
+    @render.plot
+    def recommended_plot():
+        selected = selected_data()
+        start_month, end_month = input.month_range()
+        return draw_forecast(
+            selected,
+            "log_model_prediction",
+            "Recommended log-sales forecast",
+            "#f58518",
+            f"Store {input.store_id()}: {MONTHS[start_month - 1]} to {MONTHS[end_month - 1]}, 2017",
+        )
 
     @render.data_frame
     def accuracy_table():
