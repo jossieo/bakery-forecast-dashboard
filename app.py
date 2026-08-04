@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
@@ -120,6 +121,12 @@ def server(input, output, session):
             & (test["date"].dt.month <= end_month)
         ].sort_values("date")
 
+    def format_date_axis(ax):
+        """Keep date labels readable for both short and long selected periods."""
+        locator = mdates.AutoDateLocator(minticks=3, maxticks=6)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
+
     @render.plot
     def overview_plot():
         selected = selected_data()
@@ -133,6 +140,7 @@ def server(input, output, session):
         )
         ax.set_xlabel("Date")
         ax.set_ylabel("Units sold")
+        format_date_axis(ax)
         ax.legend()
         fig.tight_layout()
         return fig
@@ -156,6 +164,7 @@ def server(input, output, session):
         ax.set_xlabel("Date")
         ax.set_ylabel("Units sold")
         ax.set_ylim(y_min, y_max)
+        format_date_axis(ax)
         ax.legend()
         fig.tight_layout()
         return fig
