@@ -64,6 +64,10 @@ app_ui = ui.page_fluid(
                     ),
                     ui.p("Select one month by setting both slider handles to the same month."),
                 ),
+                ui.card(
+                    ui.card_header("All forecasts together: actual sales and both model forecasts"),
+                    ui.output_plot("overview_plot"),
+                ),
                 ui.layout_columns(
                     ui.card(
                         ui.card_header("Actual sales vs. manager's promotion-only forecast"),
@@ -115,6 +119,23 @@ def server(input, output, session):
             & (test["date"].dt.month >= start_month)
             & (test["date"].dt.month <= end_month)
         ].sort_values("date")
+
+    @render.plot
+    def overview_plot():
+        selected = selected_data()
+        start_month, end_month = input.month_range()
+        fig, ax = plt.subplots(figsize=(11, 5))
+        ax.plot(selected["date"], selected["sales"], color="black", linewidth=1.8, label="Actual sales")
+        ax.plot(selected["date"], selected["baseline_prediction"], color="#4c78a8", label="Promotion-only forecast")
+        ax.plot(selected["date"], selected["log_model_prediction"], color="#f58518", label="Recommended log-sales forecast")
+        ax.set_title(
+            f"Store {input.store_id()}: {MONTHS[start_month - 1]} to {MONTHS[end_month - 1]}, 2017"
+        )
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Units sold")
+        ax.legend()
+        fig.tight_layout()
+        return fig
 
     def draw_forecast(selected, prediction_column, prediction_label, prediction_color, title_prefix):
         """Draw a two-line comparison on a shared scale for clear side-by-side review."""
